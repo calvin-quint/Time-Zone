@@ -45,7 +45,13 @@ if (-not (Test-RegistryValueExists $tzautoupdatePath "Start")) {
     New-RegistryValue -Path $tzautoupdatePath -Name "Start" -Value 3 -Type DWord
     exit 0
 } else {
-    Write-Host "Registry key 'Start' is already set."
+    # Check if the value is set to the correct value
+    $currentValue = (Get-ItemProperty -Path $tzautoupdatePath -Name "Start").Start
+    if ($currentValue -ne 3) {
+        New-RegistryValue -Path $tzautoupdatePath -Name "Start" -Value 3 -Type DWord
+    } else {
+        Write-Host "Registry key 'Start' is already set to the correct value."
+    }
 }
 
 # Configure Sensor Permissions
@@ -54,7 +60,13 @@ if (-not (Test-RegistryValueExists $sensorOverridesPath "SensorPermissionState")
     New-RegistryValue -Path $sensorOverridesPath -Name "SensorPermissionState" -Value 1 -Type DWord
     exit 0
 } else {
-    Write-Host "Registry key 'SensorPermissionState' is already set."
+    # Check if the value is set to the correct value
+    $currentValue = (Get-ItemProperty -Path $sensorOverridesPath -Name "SensorPermissionState").SensorPermissionState
+    if ($currentValue -ne 1) {
+        New-RegistryValue -Path $sensorOverridesPath -Name "SensorPermissionState" -Value 1 -Type DWord
+    } else {
+        Write-Host "Registry key 'SensorPermissionState' is already set to the correct value."
+    }
 }
 
 # Configure Location and Sensors Policies
@@ -63,7 +75,13 @@ if (-not (Test-RegistryValueExists $locationAndSensorsPath "DisableLocation")) {
     New-RegistryValue -Path $locationAndSensorsPath -Name "DisableLocation" -Value 0 -Type DWord
     exit 0
 } else {
-    Write-Host "Registry key 'DisableLocation' is already set."
+    # Check if the value is set to the correct value
+    $currentValue = (Get-ItemProperty -Path $locationAndSensorsPath -Name "DisableLocation").DisableLocation
+    if ($currentValue -ne 0) {
+        New-RegistryValue -Path $locationAndSensorsPath -Name "DisableLocation" -Value 0 -Type DWord
+    } else {
+        Write-Host "Registry key 'DisableLocation' is already set to the correct value."
+    }
 }
 
 # Start Location Services
