@@ -27,7 +27,7 @@ function New-RegistryValue {
         New-ItemProperty -Path $Path -Name $Name -Value $Value -PropertyType $Type -Force -ErrorAction Stop | Out-Null
         Write-Host "Registry key '$Name' set successfully at path '$Path'."
     } catch {
-        Write-Host "Failed to set registry key '$Name' at path '$Path'. Error: $_"
+        Write-Host "Failed to set registry value '$Name' at path '$Path'. Error: $_"
         exit 1
     }
 }
