@@ -1,0 +1,19 @@
+# Function to check if a registry key exists
+function Test-RegistryKeyExists {
+    param (
+        [string]$Path
+    )
+
+
+# Check and create location and sensors registry path if it doesn't exist
+$locationAndSensorsPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\LocationAndSensors"
+if (-not (Test-RegistryKeyExists $locationAndSensorsPath)) {
+    try {
+        New-Item -Path $locationAndSensorsPath -Force | Out-Null
+        Write-Host "Registry path '$locationAndSensorsPath' created successfully."
+    } catch {
+        Write-Host "Failed to create registry path '$locationAndSensorsPath'. Error: $_"
+        exit 1
+    }
+}
+
