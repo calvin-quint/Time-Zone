@@ -80,7 +80,6 @@ function Main {
         $Name = $_.Name
         $Value = $_.Value
         $Type = $_.Type
-        $Message = $_.Message
 
         if (-not (Test-RegistryValueExists $Path $Name)) {
             New-RegistryValue -Path $Path -Name $Name -Value $Value -Type $Type
