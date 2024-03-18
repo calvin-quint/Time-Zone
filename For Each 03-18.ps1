@@ -3,7 +3,7 @@
     This script changes the registry to give user access to change location services and set time zone automatically
     
 .DESCRIPTION
-      This PowerShell script automates the process changing the registry keys to enable location services and automatic time zone.
+      This PowerShell script automates the process of changing the registry keys to enable location services and automatic time zone.
     
 .PARAMETER 
    
@@ -72,7 +72,6 @@ function Main {
             Name  = "Value"
             Value = "Allow"
             Type  = "String"
-            Message = "Location Access"
         }
     )
 
@@ -92,7 +91,7 @@ function Main {
                 New-RegistryValue -Path $Path -Name $Name -Value $Value -Type $Type
                 Write-Host "Registry key '$Name' updated successfully at path '$Path' ($Message)."
             } else {
-                Write-Host "Registry key '$Name' is already set to the correct value at path '$Path' ($Message)."
+                Write-Host "Registry key '$Name' is already set to the correct value at path '$Path'."
             }
         }
     }
