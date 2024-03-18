@@ -22,12 +22,13 @@
     
 #>
 
+
 # Function to check if a registry key exists
 function Test-RegistryKeyExists {
     param (
         [string]$Path
     )
-    Test-Path $Path -PathType Container
+    return (Test-Path $Path -PathType Container)
 }
 
 # Function to check if a registry value exists
@@ -36,7 +37,14 @@ function Test-RegistryValueExists {
         [string]$Path,
         [string]$Name
     )
-    Get-ItemProperty -Path $Path -Name $Name -ErrorAction SilentlyContinue | Out-Null
+    $key = Get-Item -Path $Path -ErrorAction SilentlyContinue
+    if ($key -ne $null) {
+        $value = Get-ItemProperty -Path $Path -Name $Name -ErrorAction SilentlyContinue
+        if ($value -ne $null) {
+            return $true
+        }
+    }
+    return $false
 }
 
 # Function to set registry value and handle failure
@@ -48,47 +56,11 @@ function New-RegistryValue {
         [string]$Type
     )
     try {
-        New-ItemProperty -Path $Path -Name $Name -Value $Value -PropertyType $Type -Force -ErrorAction Stop | Out-Null
+        $result = New-ItemProperty -Path $Path -Name $Name -Value $Value -PropertyType $Type -Force -ErrorAction Stop
         Write-Host "Registry key '$Name' set successfully at path '$Path'."
     } catch {
-        Write-Host "Failed to set registry value '$Name' at path '$Path'. Error: $_"
+        Write-Host "Failed to set registry key '$Name' at path '$Path'. Error: $_"
         exit 1
-    }
-}
-
-# Function to configure or check registry values
-function Set-RegistryValue {
-    param (
-        [string]$Path,
-        [string]$Name,
-        [object]$Value,
-        [string]$Type
-    )
-
-    if (Test-RegistryKeyExists $Path) {
-        if (-not (Test-RegistryValueExists $Path $Name)) {
-            New-RegistryValue -Path $Path -Name $Name -Value $Value -Type $Type
-            return $true
-        }
-
-        $currentValue = (Get-ItemProperty -Path $Path -Name $Name).($Name)
-        if ($currentValue -ne $Value) {
-            New-RegistryValue -Path $Path -Name $Name -Value $Value -Type $Type
-            return $true
-        }
-
-        return $false
-    }
-    else {
-        try {
-            New-Item -Path $Path -Force | Out-Null
-            Write-Host "Registry key '$Path' created successfully."
-            New-RegistryValue -Path $Path -Name $Name -Value $Value -Type $Type
-            return $true
-        } catch {
-            Write-Host "Failed to create registry key '$Path'. Error: $_"
-            exit 1
-        }
     }
 }
 
@@ -100,33 +72,29 @@ function Main {
             Name  = "Value"
             Value = "Allow"
             Type  = "String"
+            Message = "Location Access"
         }
     )
 
     $settings | ForEach-Object {
-        if (Set-RegistryValue -Path $_.Path -Name $_.Name -Value $_.Value -Type $_.Type) {
-            Write-Host "Registry key '$($_.Name)' configured successfully."
+        $Path = $_.Path
+        $Name = $_.Name
+        $Value = $_.Value
+        $Type = $_.Type
+        $Message = $_.Message
+
+        if (-not (Test-RegistryValueExists $Path $Name)) {
+            New-RegistryValue -Path $Path -Name $Name -Value $Value -Type $Type
+            Write-Host "Registry key '$Name' set successfully at path '$Path' ($Message)."
         } else {
-            Write-Host "Registry key '$($_.Name)' is already set to the correct value."
+            $currentValue = (Get-ItemProperty -Path $Path -Name $Name).$Name
+            if ($currentValue -ne $Value) {
+                New-RegistryValue -Path $Path -Name $Name -Value $Value -Type $Type
+                Write-Host "Registry key '$Name' updated successfully at path '$Path' ($Message)."
+            } else {
+                Write-Host "Registry key '$Name' is already set to the correct value at path '$Path' ($Message)."
+            }
         }
-    }
-
-    # Start Location Services
-    try {
-        Start-Service -Name "lfsvc" -ErrorAction Stop
-        Write-Host "Location Services started successfully."
-    } catch {
-        Write-Host "Failed to start Location Services. Error: $_"
-        exit 1
-    }
-
-    # Resynchronize Time
-    try {
-        w32tm /resync
-        Write-Host "Time resynchronized successfully."
-    } catch {
-        Write-Host "Failed to resynchronize time. Error: $_"
-        exit 1
     }
 }
 
