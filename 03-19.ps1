@@ -72,3 +72,22 @@ $settings | ForEach-Object {
         Write-Host "Registry key '$Name' is already set to the correct value at path '$Path'."
     }
 }
+
+# Additional actions:
+# Start Location Services
+try {
+    Start-Service -Name "lfsvc" -ErrorAction Stop
+    Write-Host "Location Services started successfully."
+} catch {
+    Write-Host "Failed to start Location Services. Error: $_"
+    exit 1
+}
+
+# Resynchronize Time
+try {
+    w32tm /resync
+    Write-Host "Time resynchronized successfully."
+} catch {
+    Write-Host "Failed to resynchronize time. Error: $_"
+    exit 1
+}
